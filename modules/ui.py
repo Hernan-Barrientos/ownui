@@ -1636,18 +1636,13 @@ Requested path was: {f}
 
     interfaces += [(settings_interface, "Settings", "settings")]
 
-    css = ""
-
-    for cssfile in modules.scripts.list_files_with_name("style.css"):
-        if not os.path.isfile(cssfile):
-            continue
-
-        with open(cssfile, "r", encoding="utf8") as file:
-            css += file.read() + "\n"
+    with open(os.path.join(script_path, "style.css"), "r", encoding="utf8") as file:
+        css = file.read()
 
     if os.path.exists(os.path.join(script_path, "user.css")):
         with open(os.path.join(script_path, "user.css"), "r", encoding="utf8") as file:
-            css += file.read() + "\n"
+            usercss = file.read()
+            css += usercss
 
     if not cmd_opts.no_progressbar_hiding:
         css += css_hide_progressbar
@@ -1870,9 +1865,9 @@ def load_javascript(raw_response):
     with open(os.path.join(script_path, "script.js"), "r", encoding="utf8") as jsfile:
         javascript = f'<script>{jsfile.read()}</script>'
 
-    scripts_list = modules.scripts.list_scripts("javascript", ".js")
-    for basedir, filename, path in scripts_list:
-        with open(path, "r", encoding="utf8") as jsfile:
+    jsdir = os.path.join(script_path, "javascript")
+    for filename in sorted(os.listdir(jsdir)):
+        with open(os.path.join(jsdir, filename), "r", encoding="utf8") as jsfile:
             javascript += f"\n<!-- {filename} --><script>{jsfile.read()}</script>"
 
     if cmd_opts.theme is not None:
@@ -1890,5 +1885,6 @@ def load_javascript(raw_response):
     gradio.routes.templates.TemplateResponse = template_response
 
 
-reload_javascript = partial(load_javascript, gradio.routes.templates.TemplateResponse)
+reload_javascript = partial(load_javascript,
+                            gradio.routes.templates.TemplateResponse)
 reload_javascript()
